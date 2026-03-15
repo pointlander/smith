@@ -98,20 +98,19 @@ func main() {
 				}
 			}
 		}
-		a, b := rng.Intn(Size), rng.Intn(Size)
-		if u[a][b] == 0 && u[b][a] == 0 {
-			u[a][b] = 1
-			u[b][a] = 1
-		} else {
-			u[a][b] = 0
-			u[b][a] = 0
-		}
 		for i := range u {
 			fmt.Println(u[i])
 		}
 		fmt.Println()
 		if hd {
-			break
+			a, b := rng.Intn(Size), rng.Intn(Size)
+			if u[a][b] == 0 && u[b][a] == 0 {
+				u[a][b] = 1
+				u[b][a] = 1
+			} else {
+				u[a][b] = 0
+				u[b][a] = 0
+			}
 		}
 		//time.Sleep(time.Second)
 	}
