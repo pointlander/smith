@@ -7,17 +7,18 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	//"time"
 
 	"github.com/pointlander/smith/pagerank"
 )
 
 // Size is the size of the universe
-const Size = 8
+const Size = 16
 
 func main() {
 	rng := rand.New(rand.NewSource(1))
 	var u [Size][Size]byte
-	rank := func() []float64 {
+	rank := func() ([]float64, float64) {
 		g := pagerank.NewGraph(Size, rng)
 		for i := range u {
 			for j := range u {
@@ -34,7 +35,18 @@ func main() {
 		g.Rank(.85, 0.0000001, func(node int, rank float64) {
 			ranks[node] = rank
 		})
-		return ranks
+		sum := 0.0
+		for _, rank := range ranks {
+			sum += rank
+		}
+		avg := sum / float64(len(ranks))
+		v := 0.0
+		for _, rank := range ranks {
+			diff := rank - avg
+			v += diff * diff
+		}
+		v /= float64(len(ranks))
+		return ranks, v
 	}
 	for i := range u {
 		for j := range u {
@@ -53,12 +65,12 @@ func main() {
 	search:
 		for a := range Size {
 			for b := range Size {
-				current := rank()
+				_, vara := rank()
 				if u[a][b] == 1 && u[b][a] == 1 {
 					u[a][b] = 0
 					u[b][a] = 0
-					next := rank()
-					if current[a] > next[a] || current[b] > next[b] {
+					_, varb := rank()
+					if varb > vara {
 						u[a][b] = 1
 						u[b][a] = 1
 					} else {
@@ -68,8 +80,8 @@ func main() {
 				} else {
 					u[a][b] = 1
 					u[b][a] = 1
-					next := rank()
-					if current[a] > next[a] || current[b] > next[b] {
+					_, varb := rank()
+					if varb > vara {
 						u[a][b] = 0
 						u[b][a] = 0
 					} else {
@@ -86,6 +98,14 @@ func main() {
 				}
 			}
 		}
+		a, b := rng.Intn(Size), rng.Intn(Size)
+		if u[a][b] == 0 && u[b][a] == 0 {
+			u[a][b] = 1
+			u[b][a] = 1
+		} else {
+			u[a][b] = 0
+			u[b][a] = 0
+		}
 		for i := range u {
 			fmt.Println(u[i])
 		}
@@ -93,5 +113,6 @@ func main() {
 		if hd {
 			break
 		}
+		//time.Sleep(time.Second)
 	}
 }
