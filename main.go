@@ -48,46 +48,86 @@ func main() {
 		v /= float64(len(ranks))
 		return ranks, v
 	}
-	for i := range u {
-		for j := range u {
-			if j > i {
+	indexes := rng.Perm(Size)
+	for _, i := range indexes {
+		count := 0
+		for _, value := range u[i] {
+			if value != 0 {
+				count++
+			}
+		}
+		perm := rng.Perm(Size)
+		count = Size/2 - count
+		for j, value := range perm {
+			if value != 0 {
+				continue
+			}
+			if count == 0 {
 				break
 			}
-			linked := rng.Intn(2)
-			if linked == 0 {
-				u[i][j] = 1
-				u[j][i] = 1
-			}
+			u[i][j] = 1
+			u[j][i] = 1
+			count--
 		}
 	}
 	for {
-		hd := true
 	search:
-		for a := range Size {
-			for b := range Size {
-				_, vara := rank()
-				if u[a][b] == 1 && u[b][a] == 1 {
-					u[a][b] = 0
-					u[b][a] = 0
-					_, varb := rank()
-					if varb > vara {
-						u[a][b] = 1
-						u[b][a] = 1
-					} else {
-						hd = false
-						break search
-					}
-				} else {
+		for {
+			a, b := rng.Intn(Size), rng.Intn(Size)
+			ranks, _ := rank()
+			aa, bb := make([]int, 0, 8), make([]int, 0, 8)
+			for i, value := range u[a] {
+				if value != 0 {
+					aa = append(aa, i)
+				}
+			}
+			for i, value := range u[b] {
+				if value != 0 {
+					bb = append(bb, i)
+				}
+			}
+			rng.Shuffle(len(aa), func(i, j int) {
+				aa[i], aa[j] = aa[j], aa[i]
+			})
+			rng.Shuffle(len(bb), func(i, j int) {
+				bb[i], bb[j] = bb[j], bb[i]
+			})
+
+			if u[a][b] == 1 && u[b][a] == 1 {
+				u[a][b] = 0
+				u[b][a] = 0
+				r, _ := rank()
+				if r[a] < ranks[a] || r[b] < ranks[b] {
 					u[a][b] = 1
 					u[b][a] = 1
-					_, varb := rank()
-					if varb > vara {
-						u[a][b] = 0
-						u[b][a] = 0
-					} else {
-						hd = false
-						break search
+				} else {
+					break search
+				}
+			} else {
+				if len(aa) >= 5 {
+					u[a][aa[0]] = 0
+					u[aa[0]][a] = 0
+				}
+				if len(bb) >= 5 {
+					u[b][bb[0]] = 0
+					u[bb[0]][b] = 0
+				}
+				u[a][b] = 1
+				u[b][a] = 1
+				r, _ := rank()
+				if r[a] < ranks[a] || r[b] < ranks[b] {
+					u[a][b] = 0
+					u[b][a] = 0
+					if len(aa) >= 5 {
+						u[a][aa[0]] = 1
+						u[aa[0]][a] = 1
 					}
+					if len(bb) >= 5 {
+						u[b][bb[0]] = 1
+						u[bb[0]][b] = 1
+					}
+				} else {
+					break search
 				}
 			}
 		}
@@ -102,16 +142,6 @@ func main() {
 			fmt.Println(u[i])
 		}
 		fmt.Println()
-		if hd {
-			a, b := rng.Intn(Size), rng.Intn(Size)
-			if u[a][b] == 0 && u[b][a] == 0 {
-				u[a][b] = 1
-				u[b][a] = 1
-			} else {
-				u[a][b] = 0
-				u[b][a] = 0
-			}
-		}
 		//time.Sleep(time.Second)
 	}
 }
