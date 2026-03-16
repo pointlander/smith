@@ -108,17 +108,7 @@ func main() {
 				bb[i], bb[j] = bb[j], bb[i]
 			})
 
-			if u[a][b] == 1 && u[b][a] == 1 {
-				u[a][b] = 0
-				u[b][a] = 0
-				r, _ := rank()
-				if r[a] < ranks[a] || r[b] < ranks[b] {
-					u[a][b] = 1
-					u[b][a] = 1
-				} else {
-					break search
-				}
-			} else {
+			if u[a][b] == 0 && u[b][a] == 0 {
 				if len(aa) >= 5 {
 					u[a][aa[0]] = 0
 					u[aa[0]][a] = 0
