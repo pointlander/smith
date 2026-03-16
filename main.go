@@ -5,17 +5,29 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math/rand"
-	//"time"
 
 	"github.com/pointlander/smith/pagerank"
+
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"gonum.org/v1/plot/vg/draw"
 )
 
 // Size is the size of the universe
 const Size = 16
 
+var (
+	// FlagIterations number of iterations
+	FlagIterations = flag.Int("i", 8, "number of iterations")
+)
+
 func main() {
+	flag.Parse()
+
 	rng := rand.New(rand.NewSource(1))
 	var u [Size][Size]byte
 	rank := func() ([]float64, float64) {
@@ -70,11 +82,14 @@ func main() {
 			count--
 		}
 	}
-	for {
+	points := make(plotter.XYs, 0, 8)
+	for iterations := range *FlagIterations * 1024 {
+		ranks, variance := rank()
+		points = append(points, plotter.XY{X: float64(iterations), Y: variance})
 	search:
 		for {
 			a, b := rng.Intn(Size), rng.Intn(Size)
-			ranks, _ := rank()
+
 			aa, bb := make([]int, 0, 8), make([]int, 0, 8)
 			for i, value := range u[a] {
 				if value != 0 {
@@ -142,6 +157,24 @@ func main() {
 			fmt.Println(u[i])
 		}
 		fmt.Println()
-		//time.Sleep(time.Second)
+	}
+
+	p := plot.New()
+
+	p.Title.Text = "y vs x"
+	p.X.Label.Text = "x"
+	p.Y.Label.Text = "y"
+
+	scatter, err := plotter.NewScatter(points)
+	if err != nil {
+		panic(err)
+	}
+	scatter.GlyphStyle.Radius = vg.Length(1)
+	scatter.GlyphStyle.Shape = draw.CircleGlyph{}
+	p.Add(scatter)
+
+	err = p.Save(8*vg.Inch, 8*vg.Inch, "plot.png")
+	if err != nil {
+		panic(err)
 	}
 }
